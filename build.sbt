@@ -1,12 +1,12 @@
-name := "stormpath-scala"
+organization := "com.stormpath.scala"
 
-version := "1.0"
+version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.10.1"
-
-libraryDependencies ++= Seq(
-  "com.stormpath.sdk" % "stormpath-sdk-api" % "0.8.1"
+resolvers ++= Seq(
+    "play-plugin-releases" at "http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"
 )
+
+publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 
 ideaExcludeFolders += ".idea"
 
