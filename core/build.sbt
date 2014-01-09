@@ -7,4 +7,16 @@ libraryDependencies ++= Seq(
     "com.stormpath.sdk" % "stormpath-sdk-api" % "0.9.0"
 )
 
-publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+ideaExcludeFolders += ".idea"
+
+ideaExcludeFolders += ".idea_modules"
+
+publishMavenStyle := true
+
+publishArtifact in Test := false
+
+pomIncludeRepository := { _ => false }
+
+credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+
+publishTo := Some(Resolver.file("file", file(Path.userHome.absolutePath+"/.m2/repository")))
