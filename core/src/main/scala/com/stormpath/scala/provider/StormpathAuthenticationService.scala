@@ -19,12 +19,12 @@ package com.stormpath.scala.provider
 import context.StormpathExecutionContext
 import java.lang.String
 import com.stormpath.sdk.application.Application
-import com.stormpath.sdk.authc.AuthenticationRequest
+import com.stormpath.sdk.authc.{AuthenticationRequest, UsernamePasswordRequest}
 import com.stormpath.sdk.account.Account
-import com.stormpath.sdk.authc.UsernamePasswordRequest
 import com.stormpath.sdk.client.Client
 import scala.concurrent.Future
 import scala.util.Try
+import java.net.URL
 
 
 /**
@@ -78,7 +78,7 @@ class StormpathAuthenticationService(stormpathClient: Client, stormpathApplicati
     if (client == null) {
       throw new IllegalStateException("Stormpath SDK Client instance must be configured.")
     }
-    if (applicationRestUrl == null) {
+    if (applicationRestUrl == null || applicationRestUrl.size == 0) {
       throw new IllegalStateException("\n\nThis application's Stormpath REST URL must be configured.\n\n  " +
         "You may get your application's Stormpath REST URL as shown here:\n\n " +
         "http://www.stormpath.com/docs/application-rest-url\n\n");
@@ -97,15 +97,18 @@ class StormpathAuthenticationService(stormpathClient: Client, stormpathApplicati
 
   def doAuthenticate(username: String, password: String): Future[Try[Account]] = Future {
 
-    assertState
-    val request = createAuthenticationRequest(username, password)
-    val application = ensureApplicationReference
+    var request : AuthenticationRequest[_, _] = null
 
     try {
+      assertState
+      request = createAuthenticationRequest(username, password)
+      val application = ensureApplicationReference
       Try(application.authenticateAccount(request).getAccount)
     } finally {
       //Clear the request data to prevent later memory access
-      request.clear()
+      if(request != null) {
+        request.clear()
+      }
     }
 
   }
