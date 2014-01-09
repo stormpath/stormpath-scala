@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stormpath.scala.provider
+package com.stormpath.scala.service
 
 import context.StormpathExecutionContext
 import java.lang.String
@@ -24,7 +24,6 @@ import com.stormpath.sdk.account.Account
 import com.stormpath.sdk.client.Client
 import scala.concurrent.Future
 import scala.util.Try
-import java.net.URL
 
 
 /**
