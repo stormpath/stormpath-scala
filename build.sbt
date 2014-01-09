@@ -1,6 +1,6 @@
 organization := "com.stormpath.scala"
 
-version := "1.0-SNAPSHOT"
+version := "0.1.0-SNAPSHOT"
 
 resolvers ++= Seq(
     "play-plugin-releases" at "http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"
