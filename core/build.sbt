@@ -3,7 +3,7 @@ organization := "com.stormpath.scala"
 version := "0.1.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
-    "com.stormpath.sdk" % "stormpath-sdk-api" % "0.9.0"
+    "com.stormpath.sdk" % "stormpath-sdk-api" % "0.9.1"
 )
 
 ideaExcludeFolders += ".idea"
