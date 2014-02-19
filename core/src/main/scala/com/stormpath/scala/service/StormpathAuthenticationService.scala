@@ -25,9 +25,8 @@ import com.stormpath.sdk.client.Client
 import scala.concurrent.Future
 import scala.util.Try
 
-
 /**
- * A {@code Realm} implementation that uses the <a href="http://www.stormpath.com">Stormpath</a> Cloud Identity
+ * A Service that uses the <a href="http://www.stormpath.com">Stormpath</a> Cloud Identity
  * Management service for authentication and authorization operations for a single Application.
  * <p/>
  * The Stormpath-registered
@@ -37,12 +36,12 @@ import scala.util.Try
  * Once your application's REST URL is configured, this service automatically executes authentication
  * attempts without any need of further configuration by interacting with the Application's
  * <a href="http://www.stormpath.com/docs/rest/api#ApplicationLoginAttempts">loginAttempts endpoint</a>.
+ *
  */
 class StormpathAuthenticationService(stormpathClient: Client, stormpathApplicationRestUrl: String) {
 
   implicit val executionContext = StormpathExecutionContext.executionContext
-
-  private var client = stormpathClient
+  private val client = stormpathClient
   private val applicationRestUrl = stormpathApplicationRestUrl
   private var application : Application = _
 
@@ -69,10 +68,6 @@ class StormpathAuthenticationService(stormpathClient: Client, stormpathApplicati
     applicationRestUrl
   }
 
-  protected def onInit {
-    assertState
-  }
-
   private def assertState {
     if (client == null) {
       throw new IllegalStateException("Stormpath SDK Client instance must be configured.")
@@ -86,7 +81,7 @@ class StormpathAuthenticationService(stormpathClient: Client, stormpathApplicati
 
   //This is not thread safe, but the Client is, and this is only executed during initial Application
   //acquisition, so it is negligible if this executes a few times instead of just once.
-  protected def ensureApplicationReference : Application = {
+  protected def ensureApplicationReference() : Application = {
     if (application == null) {
       val href = getApplicationRestUrl
       application = client.getDataStore().getResource(href, classOf[Application])

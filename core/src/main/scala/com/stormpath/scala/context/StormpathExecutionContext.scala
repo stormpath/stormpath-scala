@@ -19,13 +19,26 @@ package context
 import java.util.concurrent.{Executors, ArrayBlockingQueue, TimeUnit, ThreadPoolExecutor}
 import scala.concurrent.ExecutionContext
 
+/**
+ * Execution contexts execute tasks submitted to them, and you can think of execution contexts as thread pools.
+ * They are essential for the future method because they handle how and when the asynchronous computation is executed.
+ * <pre/>
+ * We are defining here one ExecutionContext which can be used by other classes by simply defining it as an implicit variable:
+ * <pre><code>
+ * implicit val executionContext = StormpathExecutionContext.executionContext
+ * </code></pre>
+ *
+ */
 object StormpathExecutionContext {
 
-  val maxBlockingBacklog: Int = 100
+  private val corePoolSize: Int = 32
+  private val maximumPoolSize: Int = 64
+  private val maxBlockingBacklog: Int = 100
+  private val keepAlive: Long = 120
 
-  val service = new ThreadPoolExecutor(32, /* corePoolSize */
-    64, /* maximumPoolSize */
-    120L, TimeUnit.SECONDS, /* keepAliveTime */
+  private val service = new ThreadPoolExecutor(corePoolSize,
+    maximumPoolSize,
+    keepAlive, TimeUnit.SECONDS,
     new ArrayBlockingQueue[Runnable](
       maxBlockingBacklog,
       false /* we don't care about FIFO */

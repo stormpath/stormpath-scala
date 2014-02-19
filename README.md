@@ -21,3 +21,4 @@ This project requires scala 2.10 and [sbt 0.13.1](http://www.scala-sbt.org/) to 
 ### 0.1.0
 
 - First release providing only an authentication API and executor context.
+- Stormpath SDK dependency version 0.9.2
