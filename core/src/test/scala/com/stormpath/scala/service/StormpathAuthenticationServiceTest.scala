@@ -1,18 +1,17 @@
 package com.stormpath.scala.service
 
-import org.junit.{Assert, Test}
+import org.junit.{ Assert, Test }
 import com.stormpath.sdk.client.Client
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent._
 import ExecutionContext.Implicits.global
 import org.easymock.EasyMock._
 import com.stormpath.sdk.ds.DataStore
-import com.stormpath.sdk.authc.{AuthenticationResult, AuthenticationRequest}
+import com.stormpath.sdk.authc.{ AuthenticationResult, AuthenticationRequest }
 import com.stormpath.sdk.account.Account
-import org.easymock.{IAnswer, EasyMock}
+import org.easymock._
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
-import org.easymock
-import java.util
+import org.scalatest.mock.EasyMockSugar
 
 class StormpathAuthenticationServiceTest {
 
@@ -66,6 +65,7 @@ class StormpathAuthenticationServiceTest {
 
   @Test
   def testDoGetAuthenticationInfoSuccess() {
+    import java.util.Arrays
 
     val client = createStrictMock(classOf[Client])
     val dataStore = createStrictMock(classOf[DataStore])
@@ -75,13 +75,13 @@ class StormpathAuthenticationServiceTest {
 
     EasyMock.expect(client.getDataStore()).andReturn(dataStore)
     EasyMock.expect(dataStore.getResource(appUrl, classOf[com.stormpath.sdk.application.Application])).andReturn(application)
-    EasyMock.expect(application.authenticateAccount(anyObject(classOf[AuthenticationRequest[_,_]]))).andAnswer( new IAnswer[AuthenticationResult] {
+    EasyMock.expect(application.authenticateAccount(anyObject(classOf[AuthenticationRequest[_, _]]))).andAnswer(new IAnswer[AuthenticationResult] {
       def answer(): AuthenticationResult = {
 
-        val authRequest = getCurrentArguments()(0).asInstanceOf[AuthenticationRequest[_,_]]
+        val authRequest = getCurrentArguments()(0).asInstanceOf[AuthenticationRequest[_, _]]
 
         Assert.assertEquals("foo", authRequest.getPrincipals)
-        Assert.assertTrue(util.Arrays.equals("bar".toCharArray, authRequest.getCredentials.asInstanceOf[Array[Char]]))
+        Assert.assertTrue(Arrays.equals("bar".toCharArray, authRequest.getCredentials.asInstanceOf[Array[Char]]))
 
         authResult
       }
@@ -94,7 +94,7 @@ class StormpathAuthenticationServiceTest {
 
     def service = new StormpathAuthenticationService(client, appUrl)
     def future = service.doAuthenticate("foo", "bar")
-    val futureResult = Await.result(future, Duration(5, TimeUnit.SECONDS) )
+    val futureResult = Await.result(future, Duration(5, TimeUnit.SECONDS))
 
     if (futureResult.isSuccess) {
       Assert.assertEquals("foo@email.com", futureResult.get.getEmail)
@@ -105,8 +105,5 @@ class StormpathAuthenticationServiceTest {
     verify(account, authResult, application, dataStore, client)
 
   }
-
-
-
 
 }
