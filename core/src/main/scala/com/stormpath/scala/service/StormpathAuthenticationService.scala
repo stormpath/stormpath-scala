@@ -16,56 +16,41 @@
 
 package com.stormpath.scala.service
 
-import context.StormpathExecutionContext
-import java.lang.String
+import com.stormpath.scala.context.StormpathExecutionContext.executionContext
+import com.stormpath.scala.client.RichClient.client2rich
 import com.stormpath.sdk.application.Application
-import com.stormpath.sdk.authc.{AuthenticationRequest, UsernamePasswordRequest}
 import com.stormpath.sdk.account.Account
 import com.stormpath.sdk.client.Client
 import scala.concurrent.Future
 import scala.util.Try
+import scala.beans.BeanProperty
+import com.stormpath.sdk.authc.UsernamePasswordRequest
+import com.stormpath.sdk.authc.AuthenticationRequest
 
-/**
- * A Service that uses the <a href="http://www.stormpath.com">Stormpath</a> Cloud Identity
- * Management service for authentication and authorization operations for a single Application.
- * <p/>
- * The Stormpath-registered
- * <a href="https://www.stormpath.com/docs/libraries/application-rest-url">Application's Stormpath REST URL</a>
- * must be configured as the {@code applicationRestUrl} property.
- * <h3>Authentication</h3>
- * Once your application's REST URL is configured, this service automatically executes authentication
- * attempts without any need of further configuration by interacting with the Application's
- * <a href="http://www.stormpath.com/docs/rest/api#ApplicationLoginAttempts">loginAttempts endpoint</a>.
- *
- */
-class StormpathAuthenticationService(stormpathClient: Client, stormpathApplicationRestUrl: String) {
+/** A Service that uses the <a href="http://www.stormpath.com">Stormpath</a> Cloud Identity
+  * Management service for authentication and authorization operations for a single Application.
+  * <p/>
+  * The Stormpath-registered
+  * <a href="https://www.stormpath.com/docs/libraries/application-rest-url">Application's Stormpath REST URL</a>
+  * must be configured as the {@code applicationRestUrl} property.
+  * <h3>Authentication</h3>
+  * Once your application's REST URL is configured, this service automatically executes authentication
+  * attempts without any need of further configuration by interacting with the Application's
+  * <a href="http://www.stormpath.com/docs/rest/api#ApplicationLoginAttempts">loginAttempts endpoint</a>.
+  *
+  * @param client the {@code Client} instance used to communicate with Stormpath's REST API.
+  *
+  * @param applicationRestUrl the Stormpath REST URL of the specific application communicating with Stormpath.
+  *
+  */
+class StormpathAuthenticationService(
+  @BeanProperty val client: Client,
+  @BeanProperty val applicationRestUrl: String) {
 
-  implicit val executionContext = StormpathExecutionContext.executionContext
-  private val client = stormpathClient
-  private val applicationRestUrl = stormpathApplicationRestUrl
-  private var application : Application = _
-
-  /**
-   * Returns the {@code Client} instance used to communicate with Stormpath's REST API.
-   *
-   * @return the { @code Client} instance used to communicate with Stormpath's REST API.
-   */
-  def getClient: Client = {
-    client
-  }
-
-  /**
-   * Returns the Stormpath REST URL of the specific application communicating with Stormpath.
-   * <p/>
-   * Any application supported by Stormpath will have a
-   * <a href="http://www.stormpath.com/docs/quickstart/authenticate-account">dedicated unique REST URL</a>.  The
-   * Stormpath REST URL of the Shiro-enabled application communicating with Stormpath via this Realm must be
-   * configured by this property.
-   *
-   * @return the Stormpath REST URL of the specific application communicating with Stormpath.
-   */
-  def getApplicationRestUrl: String = {
-    applicationRestUrl
+  //thread safe lazy initialization
+  private lazy val application = {
+    assertState
+    client[Application](applicationRestUrl)
   }
 
   private def assertState {
@@ -79,37 +64,17 @@ class StormpathAuthenticationService(stormpathClient: Client, stormpathApplicati
     }
   }
 
-  //This is not thread safe, but the Client is, and this is only executed during initial Application
-  //acquisition, so it is negligible if this executes a few times instead of just once.
-  protected def ensureApplicationReference() : Application = {
-    if (application == null) {
-      val href = getApplicationRestUrl
-      application = client.getDataStore().getResource(href, classOf[Application])
-    }
-    application
-  }
-
   def doAuthenticate(username: String, password: String): Future[Try[Account]] = Future {
-
-    var request : AuthenticationRequest[_, _] = null
-
+    assertState
+    val request = createAuthenticationRequest(username, password)
     try {
-      assertState
-      request = createAuthenticationRequest(username, password)
-      val application = ensureApplicationReference
       Try(application.authenticateAccount(request).getAccount)
     } finally {
-      //Clear the request data to prevent later memory access
-      if(request != null) {
-        request.clear()
-      }
+      request.clear
     }
-
   }
 
   protected def createAuthenticationRequest(username: String, password: String): AuthenticationRequest[_, _] = {
     return new UsernamePasswordRequest(username, password)
   }
-
 }
-
