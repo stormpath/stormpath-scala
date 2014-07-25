@@ -25,6 +25,7 @@ import scala.concurrent.Future
 import scala.util.Try
 import scala.beans.BeanProperty
 import com.stormpath.sdk.authc.UsernamePasswordRequest
+import com.stormpath.sdk.authc.AuthenticationRequest
 
 /** A Service that uses the <a href="http://www.stormpath.com">Stormpath</a> Cloud Identity
   * Management service for authentication and authorization operations for a single Application.
@@ -65,11 +66,15 @@ class StormpathAuthenticationService(
 
   def doAuthenticate(username: String, password: String): Future[Try[Account]] = Future {
     assertState
-    val request = new UsernamePasswordRequest(username, password)
+    val request = createAuthenticationRequest(username, password)
     try {
       Try(application.authenticateAccount(request).getAccount)
     } finally {
       request.clear
     }
+  }
+
+  protected def createAuthenticationRequest(username: String, password: String): AuthenticationRequest[_, _] = {
+    return new UsernamePasswordRequest(username, password)
   }
 }
